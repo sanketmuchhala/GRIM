@@ -1,10 +1,7 @@
-name: Deploy to GitHub Pages
+name: Deploy to GitHub Pages (Complex)
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch: # Manual trigger only
 
 jobs:
   test:
@@ -22,7 +19,7 @@ jobs:
       run: npm ci
     
     - name: Run tests
-      run: npm test
+      run: npm test -- --run
     
     - name: Run lint
       run: npm run lint

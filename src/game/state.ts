@@ -379,10 +379,10 @@ export const useGameStore = create<GameStore>()(
                 setTimeout(() => {
                   const trump = getBotTrump(newState.seed + "_" + currentPlayer);
                   get().selectTrump(trump);
-                }, 500);
-              }, 500);
+                }, 300);
+              }, 300);
             }
-          }, 1000);
+          }, 600);
           return;
         }
         
@@ -399,7 +399,7 @@ export const useGameStore = create<GameStore>()(
             );
             setTimeout(() => {
               get().playCard(currentPlayer, card);
-            }, 1000);
+            }, 600);
           }
         }
       },
@@ -428,11 +428,6 @@ export const useGameStore = create<GameStore>()(
         
         get().addLogEntry(scoreResult.message);
         get().addLogEntry(`Scores: NS ${newScores.NS}, EW ${newScores.EW}`);
-        
-        // Auto-advance to next deal after 3 seconds
-        setTimeout(() => {
-          get().nextDeal();
-        }, 3000);
       }
     }),
     {

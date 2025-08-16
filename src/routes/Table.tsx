@@ -229,14 +229,17 @@ const Table: React.FC = () => {
             
             {/* Round Complete / Next Deal */}
             {phase === "Score" && (
-              <div className="absolute bottom-4 right-4">
-                <div className="bg-green-900/80 rounded-lg p-4 text-center">
-                  <div className="text-green-400 font-semibold mb-2">Round Complete!</div>
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
+                <div className="bg-green-900/95 rounded-lg p-6 text-center border-2 border-green-500 shadow-2xl">
+                  <div className="text-green-400 font-bold text-xl mb-3">Round Complete!</div>
+                  <div className="text-white mb-4">
+                    Latest Scores: NS {scores.NS}, EW {scores.EW}
+                  </div>
                   <button
                     onClick={nextDeal}
-                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-semibold"
+                    className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold text-lg"
                   >
-                    Next Deal
+                    Continue to Next Deal
                   </button>
                 </div>
               </div>

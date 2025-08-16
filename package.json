@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
-    "deploy": "npm run build && gh-pages -d dist"
+    "deploy": "npm run build && gh-pages -d dist",
+    "deploy:simple": "npm run build && cp dist/index.html dist/404.html && gh-pages -d dist"
   },
   "dependencies": {
     "@testing-library/jest-dom": "^6.7.0",
