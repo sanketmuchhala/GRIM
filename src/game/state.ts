@@ -190,13 +190,35 @@ export const useGameStore = create<GameStore>()(
         get().addLogEntry(`${seat}: ${bid}`);
         
         // Check if auction is complete
-        const passCount = newBids.slice(-4).filter(b => b.bid === "Pass").length;
-        if (newDeclarer && newBids.length >= 4 && passCount >= 3) {
-          // Auction won - wait for declarer choices
-          get().addLogEntry(`${newDeclarer} wins auction with ${newCurrentBid}`);
-        } else if (newBids.length >= 4 && newBids.slice(-4).every(b => b.bid === "Pass")) {
-          // All passed - handle round progression
-          get().handleAllPass();
+        if (newBids.length >= 4) {
+          if (newDeclarer) {
+            // Someone has bid - check if 3 consecutive passes after the last non-pass bid
+            let lastNonPassIndex = -1;
+            for (let i = newBids.length - 1; i >= 0; i--) {
+              if (newBids[i].bid !== "Pass") {
+                lastNonPassIndex = i;
+                break;
+              }
+            }
+            if (lastNonPassIndex >= 0) {
+              const bidsAfterLastNonPass = newBids.slice(lastNonPassIndex + 1);
+              if (bidsAfterLastNonPass.length >= 3 && bidsAfterLastNonPass.every(b => b.bid === "Pass")) {
+                get().addLogEntry(`${newDeclarer} wins auction with ${newCurrentBid}`);
+                // Auction is complete, now declarer needs to choose rank order and trump
+              }
+            }
+          } else {
+            // Check if all 4 players have passed in succession
+            if (newBids.length >= 4) {
+              const lastFourBids = newBids.slice(-4);
+              const allPass = lastFourBids.every(b => b.bid === "Pass");
+              if (allPass) {
+                get().addLogEntry("All players passed");
+                get().handleAllPass();
+                return;
+              }
+            }
+          }
         }
       },
 
@@ -335,24 +357,69 @@ export const useGameStore = create<GameStore>()(
 
       handleAllPass: () => {
         const state = get();
+        
         if (state.round === 1) {
+          // Set aside Round 1 cards and deal Round 2 cards (4 new cards each)
+          const deck = createDeck();
+          const shuffled = shuffleDeck(deck, state.seed + "_round2_" + state.dealIndex);
+          const hands = dealCards(shuffled.slice(16), 4, 4); // Skip first 16 cards (Round 1)
+          const dealerIndex = SEATS.indexOf(state.dealer);
+          const startIndex = (dealerIndex + 1) % 4;
+          
+          const newHands: Record<Seat, Card[]> = { N: [], E: [], S: [], W: [] };
+          for (let i = 0; i < 4; i++) {
+            const seatIndex = (startIndex + i) % 4;
+            const seat = SEATS[seatIndex];
+            newHands[seat] = hands[i];
+          }
+          
           set({
-            setAsideR1: { ...state.hands },
+            setAsideR1: { ...state.hands }, // Save Round 1 cards
+            hands: newHands,
             phase: "Round2",
-            round: 2
+            round: 2,
+            auction: { bids: [] },
+            currentPlayer: getNextSeat(state.dealer),
+            currentTrick: { cards: [] },
+            completedTricks: [],
+            rankOrder: undefined,
+            trump: undefined
           });
-          get().addLogEntry("All passed Round 1. Moving to Round 2.");
+          get().addLogEntry("All passed Round 1. Round 2 begins.");
+          
         } else if (state.round === 2) {
-          set({ phase: "Round3", round: 3 });
-          get().addLogEntry("All passed Round 2. Moving to Round 3.");
+          // Combine Round 1 and Round 2 cards for Round 3 (8 cards each)
+          const combinedHands: Record<Seat, Card[]> = { N: [], E: [], S: [], W: [] };
+          SEATS.forEach(seat => {
+            combinedHands[seat] = [...state.setAsideR1[seat], ...state.hands[seat]];
+          });
+          
+          set({ 
+            hands: combinedHands,
+            phase: "Round3", 
+            round: 3,
+            auction: { bids: [] },
+            currentPlayer: getNextSeat(state.dealer),
+            currentTrick: { cards: [] },
+            completedTricks: [],
+            rankOrder: undefined,
+            trump: undefined
+          });
+          get().addLogEntry("All passed Round 2. Round 3 begins with 8 cards.");
+          
         } else {
-          set({ phase: "Make5" });
-          get().addLogEntry("All passed Round 3. Make-5 fallback.");
+          // Round 3 all pass - go to Make-5 
+          set({ 
+            phase: "Make5",
+            trump: "S", // Default trump for Make-5
+            rankOrder: "High", // Default order for Make-5
+            currentPlayer: state.auction.declarer || getNextSeat(state.dealer)
+          });
+          get().addLogEntry("All passed Round 3. Make-5 begins.");
         }
       },
 
       completeTrick: () => {
-        const state = get();
         get().addLogEntry("Trick completed");
       },
 
