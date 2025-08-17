@@ -1,4 +1,4 @@
-import { AuctionBid, Card, Seat, AuctionState } from './types';
+import { AuctionBid, Card, Seat, AuctionState, Suit } from './types';
 import { SeededRandom } from './prng';
 import { getLegalCards } from './tricks';
 
@@ -26,14 +26,14 @@ export function getBotBid(
 export function getBotCard(
   seat: Seat,
   hand: Card[],
-  ledSuit: string | undefined,
+  ledSuit: Suit | undefined,
   seed: string,
   trickNumber: number
 ): Card {
   const rng = new SeededRandom(seed + "_bot_card_" + seat + "_" + trickNumber);
   
   // Get legal cards and pick randomly
-  const legalCards = getLegalCards(hand, ledSuit as any);
+  const legalCards = getLegalCards(hand, ledSuit);
   
   if (legalCards.length === 0) {
     return hand[0]; // Fallback

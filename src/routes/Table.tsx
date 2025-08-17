@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../game/state';
 import { Seat, SEATS } from '../game/types';
 import Hand from '../components/Hand';
@@ -10,6 +11,8 @@ import NameEditor from '../components/NameEditor';
 import { isAuctionComplete } from '../game/auction';
 
 const Table: React.FC = () => {
+  const navigate = useNavigate();
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const {
     hands,
     currentPlayer,
@@ -109,12 +112,12 @@ const Table: React.FC = () => {
             >
               New Game
             </button>
-            <a
-              href="#/"
-              className="inline-block px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold"
+            <button
+              onClick={() => navigate('/')}
+              className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold"
             >
               Back to Lobby
-            </a>
+            </button>
           </div>
         </div>
       </div>
@@ -130,12 +133,21 @@ const Table: React.FC = () => {
           <div className="text-sm text-slate-300">
             Dealer: {dealer} | Leading: {leadingTeam}
           </div>
-          <a
-            href="#/"
-            className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded"
-          >
-            Lobby
-          </a>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setShowResetConfirm(true)}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded"
+              title="Reset current game"
+            >
+              Reset Game
+            </button>
+            <button
+              onClick={() => navigate('/')}
+              className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded"
+            >
+              Lobby
+            </button>
+          </div>
         </div>
       </div>
       
@@ -211,18 +223,23 @@ const Table: React.FC = () => {
             </div>
             
             {/* Phase indicator */}
-            <div className="absolute top-4 left-4 bg-blue-900/50 rounded-lg p-2">
-              <div className="text-sm text-blue-300">
-                Phase: {phase} Round {phase === "Round1" ? 1 : phase === "Round2" ? 2 : phase === "Round3" ? 3 : ""}
+            <div className="absolute top-4 left-4 bg-blue-900/50 rounded-lg p-3">
+              <div className="text-sm text-blue-300 font-semibold">
+                Phase: {phase} {phase === "Round1" ? "Round 1" : phase === "Round2" ? "Round 2" : phase === "Round3" ? "Round 3" : ""}
               </div>
               {trump && (
-                <div className="text-sm text-yellow-300">
+                <div className="text-sm text-yellow-300 font-medium">
                   Trump: {trump === "NT" ? "No Trump" : trump}
                 </div>
               )}
               {rankOrder && (
-                <div className="text-sm text-purple-300">
+                <div className="text-sm text-purple-300 font-medium">
                   Order: {rankOrder}
+                </div>
+              )}
+              {!trump && !rankOrder && auction.declarer && (
+                <div className="text-sm text-orange-300 animate-pulse">
+                  Waiting for declarer choices...
                 </div>
               )}
             </div>
@@ -262,6 +279,36 @@ const Table: React.FC = () => {
           />
         </div>
       </div>
+      
+      {/* Reset Confirmation Modal */}
+      {showResetConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-slate-800 rounded-lg p-6 max-w-sm mx-4">
+            <h3 className="text-lg font-semibold mb-4">Reset Game?</h3>
+            <p className="text-slate-300 mb-6">
+              This will reset the current game and return to the lobby. Your progress will be lost.
+            </p>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => {
+                  resetGame();
+                  setShowResetConfirm(false);
+                  navigate('/');
+                }}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-semibold"
+              >
+                Reset Game
+              </button>
+              <button
+                onClick={() => setShowResetConfirm(false)}
+                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

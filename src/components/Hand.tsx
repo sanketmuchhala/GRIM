@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Seat } from '../game/types';
+import { Card, Seat, Suit } from '../game/types';
 import { getCardDisplay, getCardColor, sortHand } from '../game/deck';
 import { getLegalCards } from '../game/tricks';
 
@@ -7,7 +7,7 @@ interface HandProps {
   cards: Card[];
   seat: Seat;
   isCurrentPlayer: boolean;
-  ledSuit?: string;
+  ledSuit?: Suit;
   onCardClick?: (card: Card) => void;
   showCards?: boolean;
 }
@@ -20,7 +20,7 @@ const Hand: React.FC<HandProps> = ({
   showCards = true
 }) => {
   const sortedCards = sortHand(cards);
-  const legalCards = getLegalCards(sortedCards, ledSuit as any);
+  const legalCards = getLegalCards(sortedCards, ledSuit);
   
   const getCardClasses = (card: Card) => {
     const baseClasses = "w-12 h-16 border-2 rounded-lg flex items-center justify-center text-xs font-bold cursor-pointer transition-all duration-200";

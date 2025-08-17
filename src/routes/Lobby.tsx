@@ -167,12 +167,12 @@ const Lobby: React.FC = () => {
         
         {/* Rules Link */}
         <div className="mt-6 text-center">
-          <a
-            href="#/rules"
-            className="text-blue-400 hover:text-blue-300 underline"
+          <button
+            onClick={() => navigate('/rules')}
+            className="text-blue-400 hover:text-blue-300 underline bg-transparent border-none cursor-pointer"
           >
             View Game Rules
-          </a>
+          </button>
         </div>
       </div>
       
